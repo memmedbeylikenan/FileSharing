@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <title>Qeydiyyatdan keç</title>
+</head>
+<body>
+    <form action="" method="POST" >
+        {% csrf_token %}
+        <div class="container">
+          <h1>Qeydiyyat</h1>
+          <p>Zəhmət olmazsa qeydiyyatdan keçin</p>
+          <hr>
+      
+          <label for="email"><b>E-poçt</b></label>
+          <input type="email" placeholder="E-poçt daxil edin" name="email" id="email" required>
+
+          <label for="username"><b>İstifadəçi Adı</b></label>
+          <input type="text" placeholder="İstifadəçi Adı daxil edin" name="username" id="username" required>  
+
+          <label for="psw"><b>Şifrə</b></label>
+          <input type="password" placeholder="Şifrə daxil edin" name="psw" id="psw" required>
+      
+          <label for="psw-repeat"><b>Şifrə Təkrarı</b></label>
+          <input type="password" placeholder="Şifrə Təkrarı daxil edin" name="psw-repeat" id="psw-repeat" required>
+          <hr>
+          <p></p>
+      
+          <button type="submit" class="registerbtn">Qeydiyyatdan keçin</button>
+        </div>
+        
+        <div class="container signin">
+          <p>Artıq bir hesabınız var mı? <a href="{% url 'login' %}">Daxil olun</a>.</p>
+        </div>
+      </form>
+</body>
+</html>

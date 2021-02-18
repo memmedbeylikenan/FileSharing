@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>ProductDetail</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="{% url 'index' %}">MyWebSite</a>
+          </div>
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="javascript:{document.getElementById('logout').submit()}">({{user.username}})logout</a></li>
+            <form action="{% url 'logout' %}" method="POST" id="logout">
+              {% csrf_token %}
+              <input type="hidden">
+            </form>
+          </ul>
+    
+        </div>
+    
+      </nav>
+    <div class="navbar" style="float:right; margin-right: 30px;">
+        <a style="background: #4CAF50; border: solid 1px #4CAF50;color: white;" class="navbar-brand"
+            href="{% url 'upload_file' %}">Fayl Paylaşmaq</a>
+    </div>
+
+    <div class="container">
+
+        {% if permission or post.user == request.user%}
+        <div class='post_class' >
+            <div class="card">
+                <h3>by {{post.user.username}}</h3>
+                <p class="price">{{post.title}}</p>
+                <p>{{post.desc}}</p>
+                <a href="../../media/{{post.file_field}}" download="{{post.file_field}}">
+                    <button class="dwldBtn" type="button">Download</button>
+                </a>
+
+
+            </div>
+            <hr>
+        </div>
+
+        
+        
+            {% for comment  in comments %}
+            
+            <div class="col-md-12 col-sm-12">
+                <div class="panel panel-default arrow left">
+                    <div class="panel-body">
+                        <header class="text-left">
+                            <div class="comment-user"><i class="fa fa-user"></i>{{comment.user_comment.username}}</div>
+                            <time class="comment-date" datetime="16-12-2014 01:05"><i class="fa fa-clock-o"></i> {{ comment.date|date:"d/m/Y, H:i:s" }}</time>
+                        </header>
+                        <hr>
+                        <div class="comment-post">
+                            <p>
+                              {{comment.body}}
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <hr>
+            {% endfor %}
+        
+
+            {% if permission.0.permission_field == 'comment' or post.user == request.user %}
+               
+            <div class ="add_comment">
+                <div class="form-group col-12">
+                    <label for="exampleFormControlTextarea1">Comment yaz
+                    </label>
+                    <textarea class="form-control col-6" id="comment_area" rows="3"></textarea>
+                </div>
+                <div>
+                    <button class="btn btn-primary send_btn">Gonder</button>
+                </div>
+            </div>
+
+            {% endif %}
+                
+         
+  
+        
+
+
+
+
+        {% else %}
+        <h1>Sizin bu paylaşıma icazeniz yoxdur</h1>
+        {% endif %}
+
+
+
+    </div>
+
+</body>
+<script>
+    const socket = new WebSocket(
+        "ws://"+
+        window.location.host+
+        "/ws/post/"+
+        "{{post.id}}"
+        )
+
+    $('.send_btn').on('click',function(){
+        data = {
+            'user':"{{request.user.id}}",
+            'text':$('#comment_area').val()
+        }
+        socket.send(JSON.stringify(data))
+
+    })
+    socket.onmessage = function(e){
+        data = JSON.parse(e.data)
+        console.log(data)
+        if(data['type'] == 'success'){
+            $('<div class="col-md-12 col-sm-12">'+
+            '<div class="panel panel-default arrow left">'+
+            '<div class="panel-body">'+
+            '<header class="text-left">'+
+            ' <div class="comment-user"><i class="fa fa-user"></i>'+data['user']+'</div>'+
+            '<time class="comment-date" datetime="16-12-2014 01:05"><i class="fa fa-clock-o"></i> '+data['date']+'</time>'+
+            ' </header>'+
+            '<hr>'+
+            ' <div class="comment-post">'+
+            '<p>'+data['text']+'</p>'+
+            '</div>'+
+            '</div>'+
+            '</div>'+
+            '</div>'+
+            '<hr>'
+
+            ).insertAfter('.post_class')
+        }
+        else if (data['type'] == 'error'){
+            alert(data['message'])
+        }
+
+    }
+    socket.onclose = function(e){
+        console.log('Socket closed')
+    }
+
+
+
+</script>
+
+</html>

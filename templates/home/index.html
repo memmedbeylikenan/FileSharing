@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>Home</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'css/index.css' %}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-inverse">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'index' %}">MyWebSite</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="{% url 'index' %}">Home</a></li>
+        <li><a href="javascript:{document.getElementById('logout').submit()}">({{user.username}})logout</a></li>
+        <form action="{% url 'logout' %}" method="POST" id="logout">
+          {% csrf_token %}
+          <input type="hidden">
+        </form>
+      </ul>
+
+    </div>
+
+  </nav>
+  <div class="navbar" style="float:right; margin-right: 30px;">
+    <a style="background: #4CAF50; border: solid 1px #4CAF50;color: white;" class="navbar-brand"
+      href="{% url 'upload_file' %}">Fayl Paylaşmaq</a>
+  </div>
+
+  <div class="container">
+    <!-- product -->
+    <div>
+      {% if post %}
+      <h1 style="text-align: center;">Sizin file-larınız</h1>
+      {% for p in post %}
+      <div class="card">
+        <!-- Button trigger modal -->
+        <div style="text-align: right;">
+          <button style="width: 120px;" type="button" post_id="{{p.id}}" class="btn btn-primary permission_btn" data-toggle="modal"
+            data-target="#permission_modal">
+            Icazə ver
+          </button>
+        </div>
+
+        <!-- End Button trigger modal -->
+        <h3>by {{p.user.username}}</h3>
+        <p class="price">{{p.title}}</p>
+        <p>{{p.desc}}</p>
+        <p><button onclick="window.location = '../detail/{{p.id}}'  ">view</button></p>
+        <a href="../../media/{{p.file_field}}" download="{{p.file_field}}" file_id="{{p.id}}">
+          <button class="dwldbtn" type="button" >Download</button>
+        </a>
+      </div>
+      <hr>
+      {% endfor %}
+      {% else %}
+      <p>
+      <h1 style="text-align: center; color: rgb(187, 46, 46);">Sizin heç bir paylaşımınız yoxdur!</h1>
+      </p>
+      {% endif %}
+      <!-- ######################### -->
+      {% if permission %}
+      <h1 style="text-align: center;">Sizinlə paylashilan file-lar</h1>
+      <hr>
+      {% for p in permission %}
+      <div class="card">
+        <h3>by {{p.post.user.username}}</h3>
+        <p class="price">{{p.post.title}}</p>
+        <p>{{p.post.desc}}</p>
+        <p><button onclick="window.location = '../detail/{{p.post.id}}'  ">view</button></p>
+
+        <a href="../../media/{{p.post.file_field}}" download="{{p.post.post.file_field}}">
+          <button class="dwldBtn" type="button">Download</button>
+        </a>
+      </div>
+      <hr>
+      {% endfor %}
+      {% else %}
+      <h1 style="text-align: center;">Sizinlə hecbir file paylasilmayib</h1>
+      {% endif %}
+
+    </div>
+    <!-- End product -->
+    <!-- Modal -->
+    <div class="modal fade" id="permission_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Icazə ver</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div>
+              <label for="perusermodal">İstifadəçi adı</label>
+            </div>
+            <select name="perusermodal" id="permission_user">
+              <option value="">sdds</option>
+            </select>
+            <p></p>
+            <div>
+              <label for="pernamemodal">İcazənin növü</label>
+            </div>
+            <select name="permissionmodal" id="permissionname">
+              <option value="show">Baxis</option>
+              <option value="comment">Comment</option>
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary save_permission" data-dismiss="modal">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End modal -->
+  </div>
+
+</body>
+<script>
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+
+
+
+
+
+
+  $(".permission_btn").on('click',function(){
+    post_id = $(this).attr('post_id')
+    console.log(post_id)
+    $.ajax({
+      type:"get",
+      headers:{
+        "X-CSRFToken":getCookie('csrftoken')
+      },
+      url:"/api/user/list/"+ post_id,
+      success:function(data){
+        select = $('#permission_user')
+        select.empty()
+        if (data.length == 0){
+          alert("Userlerin hamsina icaze vermisiz")
+        }
+        for(var i =0;i < data.length;i++){
+          select.append("<option value="+data[i].id+">"+data[i].username+"</option>")
+        }
+        $('.save_permission').attr('post_id',post_id)
+      },
+      error:function(data){
+        console.log(data)
+      }
+      
+
+      
+
+    })
+
+  })
+
+
+  $('.save_permission').on('click',function(){
+    post_id = $(this).attr('post_id')
+    console.log($('#permission_user').children('option:selected').val())
+    console.log($('#permissionname').children('option:selected').val())
+    data = {
+      'post':post_id,
+      'user':$('#permission_user').children('option:selected').val(),
+      'permission':$('#permissionname').children('option:selected').val()
+    }
+
+    $.ajax({
+      type:'post',
+      headers:{
+        'X-CSRFToken':getCookie('csrftoken')
+      },
+      data:data,
+      url:"/api/permission/create/",
+      success:function(data){
+        console.log(data)
+      },
+      error:function(data){
+        console.log(data)
+      }
+
+
+    })
+  
+  })
+</script>
+
+</html>
